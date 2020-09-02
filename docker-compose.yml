@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  task-management-backend:
+    image: task-management-backend
+    build: .
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000

@@ -1,0 +1,10 @@
+server:
+  origin: http://localhost:3001
+db:
+  synchronize: false
+# in production, other DB related secrets are provided through env vars:
+# RDS_HOSTNAME
+# RDS_PORT
+# RDS_USERNAME
+# RDS_PASSWORD
+# RDS_DB_NAME
