@@ -1,74 +1,77 @@
-import { Repository, EntityRepository } from 'typeorm';
-import { Task } from './task.entity';
-import { CreateTaskDto } from './dto/create-task-dto';
-import { TaskStatus } from './tasks-status.enum';
-import { GetTasksFilterDto } from './dto/get-tasks-filter-dto';
-import { User } from '../auth/user.entity';
-import { Logger, InternalServerErrorException } from '@nestjs/common';
+import { Repository, EntityRepository } from 'typeorm'
+import { Task } from './task.entity'
+import { CreateTaskDto } from './dto/create-task-dto'
+import { TaskStatus } from './tasks-status.enum'
+import { GetTasksFilterDto } from './dto/get-tasks-filter-dto'
+import { User } from '../auth/user.entity'
+import { Logger, InternalServerErrorException } from '@nestjs/common'
 
 @EntityRepository(Task)
 export class TaskRepository extends Repository<Task> {
-    private logger = new Logger('TaskRepository')
-    
+  private logger = new Logger('TaskRepository')
+
   async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
-    const { title, description } = createTaskDto;
+    const { title, description } = createTaskDto
 
-    const task = new Task();
+    const task = new Task()
 
-    task.title = title;
-    task.description = description;
-    task.status = TaskStatus.OPEN;
-    task.user = user;
+    task.title = title
+    task.description = description
+    task.status = TaskStatus.OPEN
+    task.user = user
 
     try {
-        await task.save();
+      await task.save()
 
-        // remove the 'user' prop from the returned task;
-        // task is already saved with the 'user' associated:
-        // TypeORM automatically adds a userId to the DB schema,
-        // guided by the OneToMany decorators to setup such
-        // realtionship
-        delete task.user;
+      // remove the 'user' prop from the returned task;
+      // task is already saved with the 'user' associated:
+      // TypeORM automatically adds a userId to the DB schema,
+      // guided by the OneToMany decorators to setup such
+      // realtionship
+      delete task.user
 
-        return task;
+      return task
     } catch (error) {
-        this.logger.error(
-            `Failed to create task by user ${user.username}, task: ${JSON.stringify(createTaskDto)}`
-            , error.stack)
+      this.logger.error(
+        `Failed to create task by user ${user.username}, task: ${JSON.stringify(
+          createTaskDto,
+        )}`,
+        error.stack,
+      )
 
-        throw new InternalServerErrorException()
+      throw new InternalServerErrorException()
     }
   }
 
-  async getTasks(
-      filterDto: GetTasksFilterDto,
-      user: User): Promise<Task[]> {
-    const { status, search } = filterDto;
+  async getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Task[]> {
+    const { status, search } = filterDto
 
-    const query = this.createQueryBuilder('task');
-    query.where('task.userId = :userId', { userId: user.id });
+    const query = this.createQueryBuilder('task')
+    query.where('task.userId = :userId', { userId: user.id })
 
     if (status) {
-      query.andWhere('task.status = :status', { status });
+      query.andWhere('task.status = :status', { status })
     }
 
     if (search) {
       query.andWhere(
         '(task.title LIKE :search OR task.description LIKE :search)',
         { search: `%${search}` },
-      );
+      )
     }
 
     try {
-        const tasks = await query.getMany();
-        return tasks;
+      const tasks = await query.getMany()
+      return tasks
     } catch (error) {
-        this.logger.error(
-            `Failed to get tasks for user ${user.username}, filters: ${JSON.stringify(filterDto)}`
-            , error.stack)
+      this.logger.error(
+        `Failed to get tasks for user ${
+          user.username
+        }, filters: ${JSON.stringify(filterDto)}`,
+        error.stack,
+      )
 
-        throw new InternalServerErrorException()
+      throw new InternalServerErrorException()
     }
-    
   }
 }
