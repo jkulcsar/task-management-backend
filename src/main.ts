@@ -22,13 +22,13 @@ async function bootstrap() {
     )
   }
 
-  const options = new DocumentBuilder()
+  const swaggerOptions = new DocumentBuilder()
     .setTitle('Task Management')
     .setDescription('An all purpose, simple task management system')
     .setVersion('1.0')
     .addTag('tasks')
     .build()
-  const document = SwaggerModule.createDocument(app, options)
+  const document = SwaggerModule.createDocument(app, swaggerOptions)
   SwaggerModule.setup('api', app, document)
   const port = process.env.PORT || serverConfig.port
   await app.listen(port)
